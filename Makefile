@@ -29,7 +29,8 @@ clean:
 $(mulklib_TARGET): $(mulklib_OBJECTS)
 	$(LIBTOOL) -dynamic $(LDFLAGS) -o $@ $(mulklib_OBJECTS)
 
-bitmapped_patricia_tree.o: bitmapped_patricia_tree.c bitmapped_patricia_tree.h
-
 $(bpttest_TARGET): $(bpttest_OBJECTS) $(mulklib_TARGET)
 	$(CC) -o $@ $+
+
+bitmapped_patricia_tree.o: bitmapped_patricia_tree.c bitmapped_patricia_tree.h
+bpt_test.o: bpt_test.c bitmapped_patricia_tree.h
