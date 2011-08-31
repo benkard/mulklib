@@ -1,0 +1,4 @@
+.*~$
+.*\.(o|so|dylib)$
+bpt_test
+
