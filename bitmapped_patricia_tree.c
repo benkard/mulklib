@@ -70,8 +70,8 @@ struct bpt {
 struct bpt_leaf {
   struct bpt bpt;  // poor man's inheritance
   void *value;
-#ifdef BPT_ENABLE_RELEASE_HOOKS
-  void (*release_hook)(bpt_key_t, void *);   // not actually used anywhere in client code
+#ifdef BPT_ENABLE_DEALLOC_HOOKS
+  void (*dealloc_hook)(bpt_key_t, void *);   // not actually used anywhere in client code
 #endif
 };
 
@@ -89,8 +89,8 @@ void init_bpt_leaf(bpt_t a_leaf, bpt_key_t key, void *value) {
   leaf->bpt.mutable = true;
   leaf->bpt.prefix = key;
   leaf->value = value;
-#ifdef BPT_ENABLE_RELEASE_HOOKS
-  leaf->release_hook = NULL;
+#ifdef BPT_ENABLE_DEALLOC_HOOKS
+  leaf->dealloc_hook = NULL;
 #endif
   leaf->bpt.refcount = 1;
 }
@@ -451,9 +451,9 @@ void bpt_dealloc(bpt_t bpt) {
   if (bpt) {
     if (bpt->tag == BPT_LEAF) {
       bpt_leaf_t b = (bpt_leaf_t)bpt;
-#ifdef BPT_ENABLE_RELEASE_HOOKS
-      if (b->release_hook) {
-        b->release_hook(b->bpt.prefix, b->value);
+#ifdef BPT_ENABLE_DEALLOC_HOOKS
+      if (b->dealloc_hook) {
+        b->dealloc_hook(b->bpt.prefix, b->value);
       }
 #endif
       free(b);
@@ -466,10 +466,10 @@ void bpt_dealloc(bpt_t bpt) {
   }
 }
 
-#ifdef BPT_ENABLE_RELEASE_HOOKS
+#ifdef BPT_ENABLE_DEALLOC_HOOKS
 void bpt_leaf_set_dealloc_hook(bpt_leaf_t bpt, void (*hook)(bpt_key_t, void*)) {
   if (bpt) {
-    bpt->release_hook = hook;
+    bpt->dealloc_hook = hook;
   }
 }
 

@@ -30,7 +30,7 @@
 extern "C" {
 #endif
 
-#define BPT_ENABLE_RELEASE_HOOKS 1
+#define BPT_ENABLE_DEALLOC_HOOKS 1
 
 typedef int32_t bpt_key_t;
 typedef int32_t bpt_key_bitmask_t;
@@ -55,7 +55,7 @@ void bpt_release(bpt_t bpt);
 void bpt_dealloc(bpt_t bpt);
 void bpt_seal(bpt_t bpt);
 
-#ifdef BPT_ENABLE_RELEASE_HOOKS
+#ifdef BPT_ENABLE_DEALLOC_HOOKS
 void bpt_set_dealloc_hook(bpt_t bpt, bpt_key_t key, void (*hook)(bpt_key_t key, void* value));
 #endif
 
