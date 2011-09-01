@@ -435,13 +435,13 @@ static unsigned int bpt_find_diverging_chunk(bpt_key_t a, bpt_key_t b) {
 
 void bpt_retain(bpt_t bpt) {
   if (bpt) {
-    bpt->refcount++;
+    __sync_fetch_and_add(&bpt->refcount, 1);
   }
 }
 
 void bpt_release(bpt_t bpt) {
   if (bpt) {
-    if (--(bpt->refcount) == 0) {
+    if (__sync_sub_and_fetch(&bpt->refcount, 1) == 0) {
       bpt_dealloc(bpt);
     }
   }
