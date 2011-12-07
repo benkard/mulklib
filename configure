@@ -1,6 +1,6 @@
 #! /bin/sh
 
-if [ sed --version >/dev/null 2>&1 ]; then
+if sed --version >/dev/null 2>&1; then
   GSED=sed
 else
   GSED=gsed
