@@ -208,8 +208,7 @@ bpt_t bpt_assoc(bpt_t bpt, bpt_key_t key, void *value) {
         new_node->children[0] = bpt_make_leaf(key, value);
         new_node->children[1] = bpt;
       }
-      bpt_retain(new_node->children[0]);
-      bpt_retain(new_node->children[1]);
+      bpt_retain(bpt);
       return (bpt_t)new_node;
     } else {
       if (bpt->tag == BPT_LEAF) {
@@ -310,8 +309,7 @@ bpt_t bpt_dissoc(bpt_t bpt, bpt_key_t key) {
         if (!new_child && number_of_children == 2) {
           // When there is only a single child left, we replace ourselves
           // with that child.
-          bpt_t remaining_child = (b->children[0] ? b->children[0]
-                                                  : b->children[1]);
+          bpt_t remaining_child = b->children[1-child_index];
           bpt_retain(remaining_child);
           return remaining_child;
         } else if (bpt->mutable) {
