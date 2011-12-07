@@ -249,7 +249,8 @@ bpt_t bpt_assoc(bpt_t bpt, bpt_key_t key, void *value) {
               memcpy(new_node->children, b->children, size_of_child_array);
               new_node->children[child_index] = new_child;
               // Retain the children copied into the new node.
-              bpt_for_children(bpt, bpt_retain);
+              bpt_for_children((bpt_t)new_node, bpt_retain);
+              bpt_release(new_child);
               return (bpt_t)new_node;
             }
           }
