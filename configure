@@ -8,10 +8,10 @@ fi
 
 if [ "$#" -lt 2 ]; then
   echo "Usage:"
-  echo "  ./configure <bpt_key_t> <bpt_key_bitmask_t>"
+  echo "  $0 <bpt_key_t> <bpt_key_bitmask_t>"
   echo
   echo "Example:"
-  echo "  ./configure intptr_t int64_t"
+  echo "  $0 intptr_t int64_t"
   exit 2
 fi
 
