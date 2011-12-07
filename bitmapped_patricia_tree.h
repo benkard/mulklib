@@ -32,8 +32,13 @@ extern "C" {
 
 #define BPT_ENABLE_DEALLOC_HOOKS 1
 
+#ifdef BPT_EXPLICIT_CONFIGURATION
+typedef BPT_KEY_T         bpt_key_t;
+typedef BPT_KEY_BITMASK_T bpt_key_bitmask_t;
+#else
 typedef int32_t bpt_key_t;
 typedef int32_t bpt_key_bitmask_t;
+#endif  //!BPT_EXPLICIT_CONFIGURATION
 
 enum bpt_tag {
   BPT_LEAF,

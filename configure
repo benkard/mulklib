@@ -1,0 +1,25 @@
+#! /bin/sh
+
+if [ sed --version >/dev/null 2>&1 ]; then
+  GSED=sed
+else
+  GSED=gsed
+fi
+
+if [ "$#" -lt 2 ]; then
+  echo "Usage:"
+  echo "  ./configure <bpt_key_t> <bpt_key_bitmask_t>"
+  echo
+  echo "Example:"
+  echo "  ./configure intptr_t int64_t"
+  exit 2
+fi
+
+KEY_T=$1
+BITMASK_T=$2
+
+make config ADDITIONAL_CFLAGS="-DBPT_KEY_T=$KEY_T -DBPT_KEY_BITMASK_T=$BITMASK_T"
+CONFIG_CFLAGS=$(./config)
+make clean
+
+"$GSED" --in-place "s/ADDITIONAL_CFLAGS =.*\$/ADDITIONAL_CFLAGS = $CONFIG_CFLAGS -DBPT_EXPLICIT_CONFIGURATION -DBPT_KEY_T=$KEY_T -DBPT_KEY_BITMASK_T=$BITMASK_T/" Makefile
