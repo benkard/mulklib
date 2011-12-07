@@ -20,7 +20,7 @@ config_C_SOURCES = config.c
 config_OBJECTS = $(patsubst %.c,%.o,$(config_C_SOURCES))
 config_TARGET = config
 
-.PHONY: all clean
+.PHONY: all clean cleanconfig
 
 all: $(mulklib_TARGET) $(bpttest_TARGET)
 
@@ -29,6 +29,10 @@ clean:
 	$(RM_F) $(mulklib_TARGET)
 	$(RM_F) $(bpttest_OBJECTS)
 	$(RM_F) $(bpttest_TARGET)
+	$(RM_F) $(config_OBJECTS)
+	$(RM_F) $(config_TARGET)
+
+cleanconfig:
 	$(RM_F) $(config_OBJECTS)
 	$(RM_F) $(config_TARGET)
 
