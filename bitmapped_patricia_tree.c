@@ -84,6 +84,26 @@ struct bpt_node {
 };
 
 
+// Forward declarations.
+void init_bpt_leaf(bpt_t leaf, bpt_key_t key, void *value);
+bpt_t bpt_make_leaf(bpt_key_t key, void *value);
+
+
+// Boilerplate definitions.
+void bpt_retain0(bpt_t bpt, void *user_data) {
+  bpt_retain(bpt);
+}
+
+void bpt_seal0(bpt_t bpt, void *user_data) {
+  bpt_seal(bpt);
+}
+
+void bpt_release0(bpt_t bpt, void *user_data) {
+  bpt_release(bpt);
+}
+
+
+// Implementation.
 void init_bpt_leaf(bpt_t a_leaf, bpt_key_t key, void *value) {
   bpt_leaf_t leaf = (bpt_leaf_t)a_leaf;
   leaf->bpt.tag = BPT_LEAF;
@@ -128,16 +148,16 @@ static inline uint_fast8_t bpt_offset_of_key(bpt_key_t key, unsigned int branchi
 static bpt_key_t bpt_prefix_of_key(bpt_key_t key, unsigned int branching_chunk);
 static inline unsigned int bpt_branching_chunk(bpt_t bpt);
 static unsigned int bpt_find_diverging_chunk(bpt_key_t key1, bpt_key_t key2);
-static void bpt_for_children(bpt_t bpt, void (*thunk)(bpt_t));
+static void bpt_for_children(bpt_t bpt, void (*thunk)(bpt_t, void*), void *user_data);
 
 
-static void bpt_for_children(bpt_t bpt, void (*thunk)(bpt_t)) {
+static void bpt_for_children(bpt_t bpt, void (*thunk)(bpt_t, void*), void *user_data) {
   if (bpt && bpt->tag == BPT_INNER_NODE) {
     bpt_node_t b = (bpt_node_t)bpt;
     bpt_t *iter = b->children;
     bpt_t *children_end = b->children + bpt_popcount(b->bitmask);
     while (iter < children_end) {
-      thunk(*iter);
+      thunk(*iter, user_data);
       iter++;
     }
   }
@@ -249,7 +269,7 @@ bpt_t bpt_assoc(bpt_t bpt, bpt_key_t key, void *value) {
               memcpy(new_node->children, b->children, size_of_child_array);
               new_node->children[child_index] = new_child;
               // Retain the children copied into the new node.
-              bpt_for_children((bpt_t)new_node, bpt_retain);
+              bpt_for_children((bpt_t)new_node, bpt_retain0, NULL);
               bpt_release(new_child);
               return (bpt_t)new_node;
             }
@@ -276,7 +296,7 @@ bpt_t bpt_assoc(bpt_t bpt, bpt_key_t key, void *value) {
             new_node->children = new_children;
             new_node->bitmask = b->bitmask | (1 << child_number);
             // Retain the children copied into the new node.
-            bpt_for_children(bpt, bpt_retain);
+            bpt_for_children(bpt, bpt_retain0, NULL);
             return (bpt_t)new_node;
           }
         }
@@ -349,7 +369,7 @@ bpt_t bpt_dissoc(bpt_t bpt, bpt_key_t key) {
           new_node->children = new_children;
           new_node->bitmask = bitmask;
           // Retain the children copied into the new node.
-          bpt_for_children((bpt_t)new_node, bpt_retain);
+          bpt_for_children((bpt_t)new_node, bpt_retain0, NULL);
           bpt_release(new_child);
           return (bpt_t)new_node;
         }
@@ -367,7 +387,7 @@ void bpt_seal(bpt_t bpt) {
     if (bpt->mutable) {
       bpt->mutable = false;
       if (bpt->tag == BPT_INNER_NODE) {
-        bpt_for_children(bpt, bpt_seal);
+        bpt_for_children(bpt, bpt_seal0, NULL);
       }
     }
   }
@@ -459,7 +479,7 @@ void bpt_dealloc(bpt_t bpt) {
       free(b);
     } else {
       bpt_node_t b = (bpt_node_t)bpt;
-      bpt_for_children(bpt, bpt_release);
+      bpt_for_children(bpt, bpt_release0, NULL);
       free(b->children);
       free(b);
     }
@@ -477,3 +497,26 @@ void bpt_set_dealloc_hook(bpt_t bpt, bpt_key_t key, void (*hook)(bpt_key_t, void
   bpt_leaf_set_dealloc_hook(bpt_get_leaf(bpt, key), hook);
 }
 #endif
+
+
+
+/* Utilities */
+struct bpt_for_mappings_closure_data {
+  void (*thunk)(bpt_key_t, void*, void*);
+  void *user_data;
+};
+static void bpt_for_mappings_iter(bpt_t bpt, void *closure_data_) {
+  struct bpt_for_mappings_closure_data *closure_data = closure_data_;
+  if (bpt->tag == BPT_LEAF) {
+    bpt_leaf_t leaf = (bpt_leaf_t)bpt;
+    closure_data->thunk(bpt->prefix, leaf->value, closure_data->user_data);
+  } else {
+    bpt_for_children(bpt, bpt_for_mappings_iter, closure_data);
+  }
+}
+void bpt_for_mappings(bpt_t bpt, void (*thunk)(bpt_key_t, void*, void*), void *user_data) {
+  struct bpt_for_mappings_closure_data closure_data =
+    { .user_data = user_data, .thunk = thunk };
+
+  bpt_for_mappings_iter(bpt, &closure_data);
+}

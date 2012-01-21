@@ -48,18 +48,19 @@ enum bpt_tag {
 struct bpt;
 typedef struct bpt *bpt_t;
 
+// Base functionality.
 void *bpt_get(bpt_t bpt, bpt_key_t key);
 bool bpt_has_key(bpt_t bpt, bpt_key_t key);
 void **bpt_get_pointer(bpt_t bpt, bpt_key_t key);
 bpt_t bpt_assoc(bpt_t bpt, bpt_key_t key, void *item);
 bpt_t bpt_dissoc(bpt_t bpt, bpt_key_t key);
-void init_bpt_leaf(bpt_t leaf, bpt_key_t key, void *value);
-bpt_t bpt_make_leaf(bpt_key_t key, void *value);
 void bpt_retain(bpt_t bpt);
 void bpt_release(bpt_t bpt);
 void bpt_dealloc(bpt_t bpt);
 void bpt_seal(bpt_t bpt);
 
+// Utilities
+void bpt_for_mappings(bpt_t bpt, void (*thunk)(bpt_key_t, void*, void*), void *user_data);
 #ifdef BPT_ENABLE_DEALLOC_HOOKS
 void bpt_set_dealloc_hook(bpt_t bpt, bpt_key_t key, void (*hook)(bpt_key_t key, void* value));
 #endif

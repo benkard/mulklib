@@ -6,13 +6,12 @@ void print_deallocation(bpt_key_t key, void *value) {
   printf("Deallocated: %s\n", value);
 }
 
+void print_mapping(bpt_key_t key, void *value, void *user_data) {
+  printf(" %d -> %s\n", key, value);
+}
+
 void print_tree(bpt_t b) {
-  int i;
-  for (i = 0; i < 10; i++) {
-    if (bpt_has_key(b, i)) {
-      printf(" %d -> %s\n", i, bpt_get(b, i));
-    }
-  }
+  bpt_for_mappings(b, print_mapping, NULL);
 }
 
 bpt_t bpt_assoc_and_release(bpt_t bpt, bpt_key_t key, void *value) {
